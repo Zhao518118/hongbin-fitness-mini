@@ -1,0 +1,73 @@
+'use strict';
+// 可选浏览器验收：需要环境中已安装playwright及Chromium；不影响普通用户双击预览。
+const { chromium } = require('playwright');
+const fs = require('node:fs');
+const http = require('node:http');
+const path = require('node:path');
+
+(async () => {
+  const root = path.resolve(__dirname, '..');
+  const html = fs.readFileSync(path.join(root, '双击打开演示.html'));
+  const server = http.createServer((request, response) => {
+    response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' }); response.end(html);
+  });
+  let browser;
+  try {
+    await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+    browser = await chromium.launch({ executablePath: process.env.BROWSER_PATH || '/usr/bin/chromium', headless: true, args: ['--no-sandbox'] });
+    const page = await browser.newPage({ viewport: { width: 1120, height: 1040 } });
+    const errors = []; const external = [];
+    page.on('pageerror', error => errors.push(error.message));
+    const origin = 'http://127.0.0.1:' + server.address().port;
+    page.on('request', request => { if (/^https?:/.test(request.url()) && !request.url().startsWith(origin)) external.push(request.url()); });
+    await page.goto(origin);
+    await page.waitForFunction(() => window.previewStatus().data.view?.paid === true);
+    await page.screenshot({ path: path.join(root, 'docs/browser-preview.png'), fullPage: true });
+    await page.locator('#screen input[role=switch]').nth(0).check();
+    await page.locator('#screen input[role=switch]').nth(1).check();
+    await page.locator('#screen [data-field=minutes]').fill('30');
+    await page.getByRole('button', { name: '保存今天的记录', exact: true }).click();
+    await page.waitForFunction(() => window.previewStatus().data.view.period.valid === 1);
+    await page.locator('.tabs [data-page=community]').click();
+    await page.locator('#screen textarea').fill('浏览器演示：今天按计划快走。');
+    await page.getByRole('button', { name: '提交心得', exact: true }).click();
+    await page.waitForFunction(() => window.previewStatus().data.view.posts.some(post => post.mine && post.status === 'pending'));
+    await page.locator('[data-role=demo-admin]').click();
+    await page.getByRole('button', { name: '通过', exact: true }).click();
+    await page.waitForFunction(() => window.previewStatus().data.view.admin.posts.length === 0);
+    await page.getByRole('button', { name: '模拟发起退款', exact: true }).click();
+    await page.waitForFunction(() => window.previewStatus().data.view.admin.refunds[0].status === 'processing');
+    await page.getByRole('button', { name: '模拟确认到账', exact: true }).click();
+    await page.waitForFunction(() => window.previewStatus().data.view.admin.refunds[0].status === 'refunded');
+    await page.locator('[data-role=demo-visitor]').click();
+    await page.getByRole('button', { name: '了解并报名', exact: true }).click();
+    await page.locator('#screen input[type=checkbox]').nth(0).check();
+    await page.locator('#screen input[type=checkbox]').nth(1).check();
+    await page.locator('#screen input[type=checkbox]').nth(2).check();
+    for (const [field, value] of Object.entries({ nickname: '浏览器营友', age: '43', height: '170', weight: '82' })) await page.locator('#screen [data-field=' + field + ']').fill(value);
+    for (const key of ['cardiac', 'pressure', 'symptoms', 'glucose', 'injury', 'other']) await page.locator('#screen select[data-key=' + key + ']').selectOption('1');
+    await page.getByRole('button', { name: '提交健康筛查', exact: true }).click();
+    await page.waitForFunction(() => window.previewStatus().data.view.me.healthStatus === 'clear');
+    await page.getByRole('button', { name: '模拟支付 ¥900 并入营', exact: true }).click();
+    await page.locator('#dialog-confirm').click();
+    await page.waitForFunction(() => window.previewStatus().page === 'today' && window.previewStatus().data.view.paid === true);
+    await page.getByRole('button', { name: '演示：跳至我的开营日', exact: true }).click();
+    await page.waitForFunction(() => window.previewStatus().data.view.day === 1);
+    await page.locator('.tabs [data-page=profile]').click();
+    await page.waitForFunction(() => window.previewStatus().page === 'profile');
+    await page.locator('#screen [data-field=weight]').fill('81.8');
+    await page.getByRole('button', { name: '保存今天的身体记录', exact: true }).click();
+    await page.waitForFunction(() => window.previewStatus().data.view.latestWeight === 81.8);
+    if (errors.length) throw new Error('浏览器异常：' + errors.join(';'));
+    if (external.length) throw new Error('意外外部请求：' + external.join(';'));
+    await page.setViewportSize({ width: 390, height: 900 });
+    await page.locator('[data-role=demo-member]').click();
+    await page.locator('#toast').waitFor({ state: 'hidden' });
+    await page.screenshot({ path: path.join(root, 'docs/browser-preview-mobile.png'), fullPage: true });
+    console.log('浏览器验收通过：打卡、心得审核、模拟退款、新人健康筛查/支付、开营跳转、身体记录；无外部网络请求。');
+    console.log('本环境浏览器策略阻止file://导航，验收使用同一单文件的本机HTTP加载；用户电脑双击打开仍需实际确认。');
+  } finally {
+    if (browser) await browser.close();
+    await new Promise(resolve => server.close(resolve));
+  }
+})().catch(error => { console.error(error); process.exitCode = 1; });
