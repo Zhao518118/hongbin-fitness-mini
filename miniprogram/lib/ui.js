@@ -1,7 +1,12 @@
 const D = require('./domain');
+const Food = require('./nutrition');
+const Brand = require('./brand');
 const REFUND_LABELS = { eligible: '已取得资格', processing: '退款处理中', refunded: '已退款', failed: '退款失败' };
 function decorate(view) {
   const data = Object.assign({}, view);
+  data.brand = Brand;
+  data.mealCards = Food.MEALS.map(meal => Food.summary(meal.id, view.nutrition && view.nutrition.plans[meal.id], view.nutrition && view.nutrition.preferences || []));
+  data.dayNumberText = String(Math.min(90, Math.max(1, view.day || 1))).padStart(2, '0');
   data.healthLabel = { unknown: '尚未填写', clear: '符合当前服务范围', review: '待进一步评估' }[view.me.healthStatus];
   if (view.period) {
     data.period = Object.assign({}, view.period, { reward: D.money(view.period.rewardFen),

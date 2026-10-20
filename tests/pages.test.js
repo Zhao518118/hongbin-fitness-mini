@@ -47,7 +47,7 @@ test('原生Page处理器完整流程：报名→筛查→模拟支付→打卡�
   const p = platform();
   let today = p.page('today'); await today.onShow();
   assert.equal(today.data.view.paid, true);
-  today.setData({ exerciseDone: true, dietDone: true, minutes: '30' }); await today.submit();
+  today.setData({ exerciseDone: true, dietDone: true, eveningDone: true, minutes: '30' }); await today.submit();
   assert.equal(today.data.view.period.valid, 1);
 
   const community = p.page('community'); await community.onShow();
@@ -84,7 +84,7 @@ test('原生Page处理器完整流程：报名→筛查→模拟支付→打卡�
   today = p.page('today'); await today.onShow();
   assert.equal(today.data.view.started, false);
   await today.jump(); assert.equal(today.data.view.day, 1);
-  today.setData({ exerciseDone: true, dietDone: true, minutes: '20' }); await today.submit();
+  today.setData({ exerciseDone: true, dietDone: true, eveningDone: true, minutes: '20' }); await today.submit();
   assert.equal(today.data.view.period.valid, 1);
   const profile = p.page('profile'); await profile.onShow();
   profile.setData({ weight: '81.8', waist: '95' }); await profile.saveBody();
@@ -111,4 +111,20 @@ test('页面拒绝高风险报名、未勾选协议和普通成员管理操作',
   assert.equal(admin.data.view.admin, undefined);
   await admin.action(event({ action: 'settle' }));
   assert.ok(p.dialogs.includes('需要管理员权限'));
+});
+
+test('晨晚分开保存、跨页恢复，三餐搭配不自动打卡', async () => {
+  const p = platform(); const today = p.page('today'); await today.onShow();
+  today.setData({ exerciseDone: true }); await today.submit();
+  assert.equal(today.data.view.currentRecord.status, 'partial');
+  const meal = p.page('nutrition'); meal.onLoad({ meal: 'dinner' }); await meal.onShow();
+  meal.choosePreset(event({ preset: 'convenient' }));
+  meal.toggleAvoid(event({ id: 'milk' }));
+  assert.ok(!meal.data.groups.flatMap(group => group.foods).some(food => food.id === 'milk'));
+  await meal.save(); assert.ok(meal.data.view.nutrition.plans.dinner);
+  assert.equal(meal.data.view.currentRecord.status, 'partial');
+  await today.onShow(); assert.equal(today.data.exerciseDone, true);
+  today.setData({ dietDone: true, eveningDone: true }); await today.submit();
+  assert.equal(today.data.view.period.valid, 1);
+  await today.onShow(); await today.submit(); assert.equal(today.data.view.period.valid, 1);
 });

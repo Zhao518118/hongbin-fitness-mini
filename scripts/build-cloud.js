@@ -4,7 +4,7 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '..');
 const destination = path.join(root, 'cloudfunctions/api/shared');
 fs.mkdirSync(destination, { recursive: true });
-for (const name of ['domain.js', 'engine.js']) fs.copyFileSync(path.join(root, 'miniprogram/lib', name), path.join(destination, name));
+for (const name of ['domain.js', 'engine.js', 'nutrition.js']) fs.copyFileSync(path.join(root, 'miniprogram/lib', name), path.join(destination, name));
 const Engine = require('../miniprogram/lib/engine');
 const D = require('../miniprogram/lib/domain');
 const document = { _id: 'state-v1', revision: 0, state: Engine.emptyState(D.addDays(D.businessDate(new Date()), 2)) };

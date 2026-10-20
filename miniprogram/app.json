@@ -1,8 +1,8 @@
 {
-  "pages": ["pages/today/index", "pages/community/index", "pages/profile/index", "pages/enroll/index", "pages/agreement/index", "pages/admin/index"],
-  "window": { "navigationBarTitleText": "晨光 · 90天同行", "navigationBarBackgroundColor": "#f6f7f2", "navigationBarTextStyle": "black", "backgroundColor": "#f6f7f2" },
+  "pages": ["pages/today/index", "pages/community/index", "pages/profile/index", "pages/enroll/index", "pages/agreement/index", "pages/admin/index", "pages/nutrition/index"],
+  "window": { "navigationBarTitleText": "晨序 · 90天同行", "navigationBarBackgroundColor": "#f5f2ec", "navigationBarTextStyle": "black", "backgroundColor": "#f5f2ec" },
   "tabBar": {
-    "color": "#77817a", "selectedColor": "#176b50", "backgroundColor": "#ffffff", "borderStyle": "white",
+    "color": "#77786e", "selectedColor": "#263b31", "backgroundColor": "#fcfbf8", "borderStyle": "white",
     "list": [
       { "pagePath": "pages/today/index", "text": "今日" },
       { "pagePath": "pages/community/index", "text": "营友" },

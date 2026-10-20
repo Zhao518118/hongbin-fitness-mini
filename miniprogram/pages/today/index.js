@@ -1,12 +1,14 @@
 const UI = require('../../lib/ui');
 Page({
-  data: { view: null, busy: false, loading: true, error: '', minutes: '30', exerciseIndex: 0, exercises: ['快走', '走跑结合', '骑行', '基础力量', '按计划恢复'], exerciseDone: false, dietDone: false, dinnerTime: '17:30' },
+  data: { view: null, busy: false, loading: true, error: '', activeRitual: '', minutes: '30', exerciseIndex: 0, exercises: ['快走', '走跑结合', '骑行', '基础力量', '按计划恢复'], exerciseDone: false, dietDone: false, eveningDone: false, dinnerTime: '17:30' },
   async onShow() {
     const view = await UI.refresh(this);
     if (view && view.currentRecord && view.currentRecord.status !== 'exempt') {
       const row = view.currentRecord;
-      this.setData({ minutes: String(row.minutes || 30), exerciseDone: !!row.exerciseDone, dietDone: !!row.dietDone, dinnerTime: row.dinnerTime || '17:30' });
-    } else this.setData({ exerciseDone: false, dietDone: false });
+      this.setData({ minutes: String(row.minutes || 30), exerciseIndex: Math.max(0, this.data.exercises.indexOf(row.exercise)), exerciseDone: !!row.exerciseDone,
+        dietDone: typeof row.mealDone === 'boolean' ? row.mealDone : !!row.dietDone,
+        eveningDone: typeof row.eveningDone === 'boolean' ? row.eveningDone : !!row.dietDone, dinnerTime: row.dinnerTime || '17:30' });
+    } else this.setData({ exerciseDone: false, dietDone: false, eveningDone: false });
   },
   retry() { return this.onShow(); },
   input(event) { UI.formInput(this, event); },
@@ -14,8 +16,14 @@ Page({
   chooseDinner(event) { this.setData({ dinnerTime: event.detail.value }); },
   toggle(event) { this.setData({ [event.currentTarget.dataset.field]: event.detail.value }); },
   enroll() { wx.navigateTo({ url: '/pages/enroll/index' }); },
+  openRitual(event) {
+    this.setData({ activeRitual: event.currentTarget.dataset.ritual });
+    if (wx.nextTick && wx.pageScrollTo) wx.nextTick(() => wx.pageScrollTo({ selector: '#ritual-form', duration: 250 }));
+  },
+  nutrition(event) { wx.navigateTo({ url: '/pages/nutrition/index?meal=' + (event.currentTarget.dataset.meal || 'breakfast') }); },
   async submit() {
-    await UI.perform(this, 'checkin', { minutes: this.data.minutes, exercise: this.data.exercises[this.data.exerciseIndex], exerciseDone: this.data.exerciseDone, dietDone: this.data.dietDone, dinnerTime: this.data.dinnerTime }, '今日记录已保存');
+    await UI.perform(this, 'checkin', { minutes: this.data.minutes, exercise: this.data.exercises[this.data.exerciseIndex], exerciseDone: this.data.exerciseDone,
+      mealDone: this.data.dietDone, eveningDone: this.data.eveningDone, dietDone: this.data.dietDone && this.data.eveningDone, dinnerTime: this.data.dinnerTime }, '今日记录已保存');
   },
   exempt() {
     wx.showModal({ title: '今天灵活安排', content: '免打卡不计有效日，每周期最多两天。生病或受伤请申请暂停，不要硬撑。', success: async result => { if (result.confirm) await UI.perform(this, 'checkin', { exempt: true }, '已记录免打卡'); } });

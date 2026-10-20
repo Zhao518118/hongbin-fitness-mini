@@ -15,9 +15,9 @@ function allText(tree) { const result = []; walk(tree, node => { if (typeof node
 function view(state, actor) { return UI.decorate(Engine.handle(state, actor, 'view', {}, context())); }
 
 test('真实WXML渲染：付费用户只显示打卡分支，周日历正确循环7天', () => {
-  const tree = render('today', { view: view(setup(), 'demo-member'), minutes: '30', exercises: ['快走'], exerciseIndex: 0, dinnerTime: '17:30' });
+  const tree = render('today', { view: view(setup(), 'demo-member'), activeRitual: 'morning', minutes: '30', exercises: ['快走'], exerciseIndex: 0, dinnerTime: '17:30' });
   const text = allText(tree);
-  assert.ok(text.includes('保存今天的记录'));
+  assert.ok(text.includes('保存晨练记录'));
   assert.ok(!text.includes('了解并报名'));
   assert.ok(!text.includes('正在读取你的计划'));
   let dots = 0; walk(tree, node => { if (node && node.attr && /^dot /.test(node.attr.class)) dots++; });
@@ -26,7 +26,7 @@ test('真实WXML渲染：付费用户只显示打卡分支，周日历正确循�
 test('真实WXML渲染：未付费用户只有报名入口，无付费内容与打卡按钮', () => {
   const data = { view: view(setup(), 'demo-visitor') };
   const today = allText(render('today', data));
-  assert.ok(today.includes('了解并报名')); assert.ok(!today.includes('保存今天的记录'));
+  assert.ok(today.includes('了解并报名')); assert.ok(!today.includes('保存晨练记录'));
   const community = allText(render('community', data));
   assert.ok(community.includes('完成健康准入并入营后'));
   assert.ok(!community.includes('提交心得'));
@@ -55,7 +55,7 @@ test('真实WXML渲染：管理周表、我的记录、协议及加载态均可�
   const profileTree = render('profile', { view: view(state, 'demo-member'), roles: [], requestTypes: ['暂停/调整'], requestType: 0 });
   assert.ok(allText(profileTree).includes('第12周')); assert.ok(allText(profileTree).includes('结营6天'));
   assert.ok(allText(render('agreement', { title: '健康告知', body: '演示风险说明' })).includes('演示风险说明'));
-  for (const page of ['today', 'community', 'profile', 'enroll', 'admin']) assert.doesNotThrow(() => render(page, { view: null, loading: true }));
+  for (const page of ['today', 'community', 'profile', 'enroll', 'admin', 'nutrition']) assert.doesNotThrow(() => render(page, { view: null, loading: true }));
 });
 test('真实WXSS编译生成样式函数，所有页面共用样式可编译', () => {
   const style = compiler.wxssToJs(path.resolve(__dirname, '../miniprogram'));

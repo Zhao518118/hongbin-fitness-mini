@@ -1,6 +1,7 @@
 'use strict';
 
 const D = require('./domain');
+const Food = require('./nutrition');
 const { requireThat: guard } = D;
 const HEALTH_KEYS = ['cardiac', 'pressure', 'symptoms', 'glucose', 'injury', 'other'];
 const HEALTH_QUESTIONS = [
@@ -17,7 +18,7 @@ function emptyState(date) {
     version: 1, sequence: 0, demoDate: date,
     camps: [{ id: 'camp-1', title: '90天晨练减脂营', startDate: date, rulesVersion: D.RULES_VERSION }],
     users: {}, consents: [], orders: {}, enrollments: {}, checkins: {}, bodies: [],
-    posts: [], reports: [], requests: [], settlements: {}, refunds: {}, audits: []
+    posts: [], reports: [], requests: [], settlements: {}, refunds: {}, audits: [], mealPlans: {}
   };
 }
 function id(state, prefix) { state.sequence += 1; return prefix + '-' + state.sequence; }
@@ -83,6 +84,7 @@ function snapshot(state, actor, ctx) {
     me: { id: me.id, nickname: me.nickname, age: me.age || '', height: me.height || '', healthStatus: me.healthStatus },
     healthQuestions: HEALTH_QUESTIONS, healthKeys: HEALTH_KEYS,
     documentVersion: D.DOCUMENT_VERSION, price: '900',
+    nutrition: { preferences: me.foodPreferences || [], plans: (state.mealPlans || {})[actor] || {} },
     camp: paid ? campFor(state, en) : state.camps.find(camp => camp.startDate >= date) || null,
     bodies: state.bodies.filter(row => row.userId === actor).sort((a, b) => a.date.localeCompare(b.date)),
     requests: state.requests.filter(row => row.userId === actor).map(row => ({ id: row.id, type: row.type, reason: row.reason, status: row.status, resolution: row.resolution || '' })),
@@ -248,9 +250,23 @@ function handle(state, actor, action, payload, ctx) {
         guard(!payload.exerciseDone || minutes > 0, 'INPUT', '完成运动时请填写大于0的时长');
         const exercise = D.text(payload.exercise, 1, 20, '请选择活动类型');
         guard(typeof payload.dinnerTime === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(payload.dinnerTime), 'INPUT', '请填写晚餐时间');
-        state.checkins[key] = { status: payload.exerciseDone && payload.dietDone ? 'complete' : 'partial', date, userId: actor, campId: en.campId,
-          exercise, minutes, exerciseDone: payload.exerciseDone, dietDone: payload.dietDone, dinnerTime: payload.dinnerTime };
+        guard((payload.mealDone == null || typeof payload.mealDone === 'boolean') && (payload.eveningDone == null || typeof payload.eveningDone === 'boolean'), 'INPUT', '请确认三餐和晚间记录状态');
+        const mealDone = payload.mealDone == null ? payload.dietDone : payload.mealDone;
+        const eveningDone = payload.eveningDone == null ? payload.dietDone : payload.eveningDone;
+        const dietDone = payload.dietDone && mealDone && eveningDone;
+        state.checkins[key] = { status: payload.exerciseDone && dietDone ? 'complete' : 'partial', date, userId: actor, campId: en.campId,
+          exercise, minutes, exerciseDone: payload.exerciseDone, dietDone, mealDone, eveningDone, dinnerTime: payload.dinnerTime };
       }
+      break;
+    }
+    case 'mealPlan': {
+      enrollment(state, actor, ctx);
+      const avoid = Food.preferences(payload.preferences || []);
+      const plan = Food.validate(payload.meal, payload.plan, avoid);
+      if (!state.mealPlans) state.mealPlans = {};
+      if (!state.mealPlans[actor]) state.mealPlans[actor] = {};
+      state.mealPlans[actor][payload.meal] = Object.assign({}, plan, { updatedAt: timestamp(ctx) });
+      me.foodPreferences = avoid;
       break;
     }
     case 'body': {

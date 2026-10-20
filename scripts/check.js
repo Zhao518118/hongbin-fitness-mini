@@ -45,4 +45,4 @@ const compiler = require('miniprogram-compiler');
 compiler.wxmlToJs(path.join(root, 'miniprogram'));
 const styleSource = compiler.wxssToJs(path.join(root, 'miniprogram'));
 new vm.Script('(function(global){' + styleSource + '})');
-console.log('检查通过：JavaScript语法、JSON、6页组件/事件、wcc/wcsc模板样式编译及云函数打包。此检查不替代当前微信开发者工具和真机验收。');
+console.log('检查通过：JavaScript语法、JSON、全部页面组件/事件、wcc/wcsc模板样式编译及云函数打包。此检查不替代当前微信开发者工具和真机验收。');

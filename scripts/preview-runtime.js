@@ -16,7 +16,7 @@
   let toastTimer;
   let dialogFinish;
   const clone = value => value == null ? value : JSON.parse(JSON.stringify(value));
-  const titles = { today: '今日 · 晨光同行', community: '营友 · 一起坚持', profile: '我的 · 看见进步', enroll: '报名 · 90天同行', agreement: '服务说明', admin: '管理工作台' };
+  const titles = { today: '晨序 · 今日', nutrition: '三餐搭配 · 晨序', community: '营友 · 一起坚持', profile: '我的 · 看见进步', enroll: '报名 · 90天同行', agreement: '服务说明', admin: '管理工作台' };
   function readStorage(key) {
     if (memory.has(key)) return clone(memory.get(key));
     try { const value = localStorage.getItem('morning-preview:' + key); return value ? JSON.parse(value) : undefined; }
@@ -120,6 +120,8 @@
   document.getElementById('dialog').addEventListener('cancel', () => { if (dialogFinish) dialogFinish(false); });
 
   window.wx = {
+    nextTick: callback => queueMicrotask(callback),
+    pageScrollTo: options => { const target = screen.querySelector(options.selector); if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' }); },
     getStorageSync: readStorage, setStorageSync: writeStorage,
     showToast: options => toast(options.title),
     showModal: options => modal(options),
@@ -186,7 +188,7 @@
       else if (key === 'style') element.setAttribute('style', String(value).replace(/(-?\d*\.?\d+)rpx/g, 'calc(var(--rpx) * $1)'));
       else if (key.startsWith('data-')) element.setAttribute(key, String(value));
       else if (key === 'disabled') element.disabled = value === true;
-      else if (key === 'maxlength' || key === 'placeholder') element.setAttribute(key, value);
+      else if (key === 'maxlength' || key === 'placeholder' || key === 'id') element.setAttribute(key, value);
     }
     if (type === 'checkbox-group') element.dataset.checkboxGroup = 'true';
     if (attrs.bindtap) element.addEventListener('click', event => { event.stopPropagation(); invoke(page, attrs.bindtap, element); });

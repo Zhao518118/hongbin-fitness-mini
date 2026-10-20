@@ -1,0 +1,15 @@
+<view class="page">
+  <view wx:if="{{view.mode === 'demo'}}" class="demo">体验版本 · 饮食搭配仅保存在模拟账户</view>
+  <view class="eyebrow gap">THE DAILY TABLE / 晨序</view><view class="display-title">好好吃饭，<view>也是一种自律。</view></view><view class="subtitle">不用挨饿，不必复杂。选一份适合自己的搭配。</view>
+  <view wx:if="{{error}}" class="error gap" bindtap="retry">{{error}} · 点击重试</view><view wx:if="{{loading}}" class="empty">正在准备搭配…</view>
+  <block wx:if="{{draft}}"><view class="meal-tabs"><view wx:for="{{meals}}" wx:key="id" class="meal-tab {{meal === item.id ? 'selected' : ''}}" data-meal="{{item.id}}" bindtap="chooseMeal">{{item.name}}<view>{{item.time}}</view></view></view>
+  <view class="meal-intro"><view class="eyebrow">{{mealInfo.english}}</view><view class="section-title gap">{{mealInfo.note}}</view><view class="note">时间是日常参考；份量需结合体型、活动与健康情况调整。</view></view>
+  <view class="label gap">一键选搭配，再按喜好换</view><view class="chips"><view wx:for="{{presets}}" wx:key="id" class="chip {{activePreset === item.id ? 'selected' : ''}}" data-preset="{{item.id}}" bindtap="choosePreset">{{item.name}}</view></view>
+  <view class="card hero"><view class="eyebrow">MY {{mealInfo.english}}</view><view class="hero-title">这顿，吃得刚刚好。</view><view class="meal-summary">{{summary}}</view><button wx:if="{{view.paid}}" class="primary gap" loading="{{busy}}" disabled="{{busy}}" bindtap="save">保存这份{{mealInfo.name}}搭配 ↗</button><button wx:else class="primary gap" bindtap="enroll">报名后保存我的搭配</button><view class="note">保存搭配不会自动完成饮食打卡。请按实际用餐情况记录。</view></view>
+  <button class="plain gap" bindtap="customize">{{showCustomization ? '收起食材选择 ↑' : '按喜好更换食材 ↓'}}</button>
+  <block wx:if="{{showCustomization}}">  <view class="card preference-card"><view class="label">先选食材偏好</view><view class="chips"><view wx:for="{{avoids}}" wx:key="id" class="chip small {{item.selected ? 'selected' : ''}}" data-id="{{item.id}}" bindtap="toggleAvoid">{{item.name}}{{item.selected ? ' ✓' : ''}}</view></view><view class="note">更改偏好会重置当前草稿。过滤不代替过敏安全判断，请核对实际配料及交叉接触风险。</view></view>
+  <view wx:for="{{groups}}" wx:key="id" wx:for-item="group" class="food-section"><view class="row"><view class="section-title"><text class="group-number">{{group.number}}</text>{{group.name}}</view><text class="tag">{{group.id === 'produce' ? '多选 / 最多2种' : (group.id === 'extra' ? '可不选' : '单选')}}</text></view><view class="muted">{{group.hint}}</view><view class="food-grid"><view wx:for="{{group.foods}}" wx:key="id" class="food-option {{item.selected ? 'selected' : ''}}" data-group="{{group.id}}" data-field="{{group.field}}" data-id="{{item.id}}" bindtap="chooseFood"><view class="food-check">{{item.selected ? '✓' : '+'}}</view><view class="food-name">{{item.name}}</view><view class="food-portion">{{item.portion}}</view></view></view></view>
+</block>
+  <view class="note gap">这是一般健康饮食参考，不是个体营养处方。食材替换不代表营养等量；蛋白质份量、奶豆搭配需结合全天饮食调整。有慢性病、特殊饮食或用药需要，请先咨询医生或注册营养师。晚餐正常吃，不以省掉晚餐减肥。</view></block>
+  <view class="footer-note">EAT WITH CARE. LIVE WITH EASE.</view>
+</view>
