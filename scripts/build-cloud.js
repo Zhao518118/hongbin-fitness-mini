@@ -1,0 +1,12 @@
+'use strict';
+const fs = require('node:fs');
+const path = require('node:path');
+const root = path.resolve(__dirname, '..');
+const destination = path.join(root, 'cloudfunctions/api/shared');
+fs.mkdirSync(destination, { recursive: true });
+for (const name of ['domain.js', 'engine.js']) fs.copyFileSync(path.join(root, 'miniprogram/lib', name), path.join(destination, name));
+const Engine = require('../miniprogram/lib/engine');
+const D = require('../miniprogram/lib/domain');
+const document = { _id: 'state-v1', revision: 0, state: Engine.emptyState(D.addDays(D.businessDate(new Date()), 2)) };
+fs.writeFileSync(path.join(root, 'cloudfunctions/api/initial-state.example.json'), JSON.stringify(document, null, 2) + '\n');
+console.log('已同步云函数共享业务代码，并生成无个人数据的初始状态示例。');

@@ -1,0 +1,27 @@
+<view class="page">
+  <view wx:if="{{view.mode === 'demo'}}" class="demo">模拟演示 · 支付与返款均不涉及真实资金</view>
+  <view class="row"><view><view class="eyebrow">MORNING TOGETHER</view><view class="title">把健康，放进日常。</view></view><text class="badge">90天同行</text></view>
+  <view class="subtitle">{{view.today}} · 早起一点，慢慢变好</view>
+  <view wx:if="{{error}}" class="error gap" bindtap="retry">{{error}} · 点击重试</view>
+  <view wx:if="{{loading}}" class="empty">正在读取你的计划…</view>
+  <block wx:if="{{view && !view.paid}}">
+    <view class="card hero"><view class="eyebrow">给自己一个新的开始</view><view class="hero-title">晨练、好好吃饭，<view>一起坚持90天。</view></view><view class="muted">面向35—55岁人群 · 每周两天灵活安排</view><view class="divider"></view><view class="row"><view><text class="money-symbol">¥</text><text class="amount">900</text><view class="muted">达标按周返，累计最多900元</view></view><button class="primary" bindtap="enroll">了解并报名</button></view></view>
+    <view class="card"><view class="section-title">简单三件事</view><view class="list-row">01　早晨按个人计划活动</view><view class="list-row">02　早餐午餐科学搭配，晚餐早点吃</view><view class="list-row">03　每天一次记录，每周完成5天</view><view class="note">挑战减脂15—20斤，个人目标需评估，不承诺人人达到。先完成健康筛查，再决定是否入营。</view></view>
+  </block>
+  <block wx:if="{{view.paid}}">
+    <view class="card hero"><view class="row"><text class="eyebrow">你好，{{view.me.nickname}}</text><text>{{view.dayLabel}}</text></view><view class="hero-title">{{view.started ? '今天也为自己，走一步。' : (view.day < 1 ? '装备好心情，等待开营。' : '90天结束，习惯继续。')}}</view><view class="muted">{{view.camp.title}} · {{view.camp.startDate}}开营</view><view class="progress"><view class="progress-fill" style="width:{{view.progress}}%"></view></view></view>
+    <view class="card"><view class="row"><view class="section-title">{{view.period.label}} · 我的节奏</view><text class="badge">达标可返¥{{view.period.reward}}</text></view><view class="row"><view><text class="amount">{{view.period.valid}}</text><text class="muted"> / {{view.period.required}}天</text></view><text class="tag">剩余免打卡 {{view.period.remainingExempt}} 天</text></view><view class="week"><view wx:for="{{view.period.rows}}" wx:key="date" class="day"><view>{{item.short}}</view><view class="dot {{item.status}}">{{item.symbol}}</view></view></view><view class="note">✓ 有效　半 部分完成　免 灵活安排　— 未记录</view></view>
+    <view wx:if="{{!view.started}}" class="card"><view class="section-title">{{view.day < 1 ? '即将开始' : '本期已结束'}}</view><view class="muted">{{view.day < 1 ? '开营前可以阅读计划、了解营规。' : '在“我的”查看身体记录和各周期返款状态。'}}</view><button wx:if="{{view.localDemo && view.day < 1}}" class="secondary gap" bindtap="jump">演示：跳至我的开营日</button></view>
+    <view wx:if="{{view.started}}" class="card"><view class="row"><view class="section-title">今日打卡</view><text class="badge">{{view.currentRecord ? (view.currentRecord.status === 'complete' ? '今日已完成' : (view.currentRecord.status === 'exempt' ? '今日免打卡' : '已保存部分记录')) : '约半分钟'}}</text></view><view class="notice">按个人计划完成即可，新手逐步增加运动量。身体不适时先休息、就医或申请调整。</view>
+      <view class="field"><view class="label">今天做了什么活动？</view><picker range="{{exercises}}" value="{{exerciseIndex}}" bindchange="chooseExercise"><view class="picker">{{exercises[exerciseIndex]}}　⌄</view></picker></view>
+      <view class="field"><view class="label">运动时长（分钟）</view><input class="input" type="number" value="{{minutes}}" data-field="minutes" bindinput="input" maxlength="3"/></view>
+      <view class="row switch-row"><text>按个人运动计划完成</text><switch checked="{{exerciseDone}}" color="#176b50" data-field="exerciseDone" bindchange="toggle"/></view>
+      <view class="row switch-row"><text>按饮食计划完成</text><switch checked="{{dietDone}}" color="#176b50" data-field="dietDone" bindchange="toggle"/></view>
+      <view class="field"><view class="label">晚餐完成时间</view><picker mode="time" value="{{dinnerTime}}" bindchange="chooseDinner"><view class="picker">{{dinnerTime}}　⌄</view></picker></view>
+      <view class="note">早餐午餐正常搭配，晚餐默认17—18点完成。健康及用药需要优先，不为打卡挨饿或擅自停药。</view>
+      <button class="primary gap" loading="{{busy}}" disabled="{{busy}}" bindtap="submit">保存今天的记录</button><button class="plain gap" disabled="{{busy}}" bindtap="exempt">今天使用免打卡</button>
+    </view>
+    <view class="card"><view class="section-title">一点点坚持，看得见</view><view class="row"><view class="metric"><view class="metric-number">¥{{view.eligible}}</view><view class="metric-label">累计已取得返款资格</view></view><view class="metric"><view class="metric-number">¥{{view.refunded}}</view><view class="metric-label">已退款</view></view></view><view class="note">前12周各70元，最后6天60元。累计最多900元，无额外结营奖金。</view></view>
+  </block>
+  <view class="footer-note">运动有度 · 饮食有节 · 长久同行</view>
+</view>

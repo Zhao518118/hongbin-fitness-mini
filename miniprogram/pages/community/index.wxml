@@ -1,0 +1,14 @@
+<view class="page">
+  <view wx:if="{{view.mode === 'demo'}}" class="demo">模拟演示 · 营友与心得均为本机演示数据</view>
+  <view class="eyebrow">A LITTLE COMPANY</view><view class="title">有人同行，更容易坚持。</view><view class="subtitle">分享经验，也给彼此一点鼓励。</view>
+  <view wx:if="{{error}}" class="error gap" bindtap="retry">{{error}} · 点击重试</view>
+  <view wx:if="{{loading}}" class="empty">正在读取营友心得…</view>
+  <view wx:if="{{view && !view.paid}}" class="card"><view class="section-title">这是本期营友的交流空间</view><view class="muted">完成健康准入并入营后，即可分享和阅读本期心得。你的私人健康档案不会公开。</view><button class="primary gap" bindtap="enroll">了解并报名</button></view>
+  <block wx:if="{{view.paid}}">
+    <view class="card"><view class="section-title">记下今天的一点收获</view><textarea class="textarea" maxlength="600" value="{{content}}" placeholder="今天哪件小事，让你觉得自己在变好？" bindinput="input"/><view wx:if="{{image}}"><image class="post-image" src="{{image}}" mode="aspectFill"/><text class="link" bindtap="clearImage">移除图片</text></view><view class="note">仅本期营友可见。请勿分享病历、证件或他人隐私。心得经审核后发布。</view><view class="row gap"><button class="plain small-button" bindtap="chooseImage">＋ 选填图片</button><button class="primary small-button" loading="{{busy}}" disabled="{{busy}}" bindtap="publish">提交心得</button></view></view>
+    <view class="row gap"><text class="section-title">本期营友 · {{view.posts.length}}篇</text><text class="tag">只和同路人分享</text></view>
+    <view wx:if="{{!view.posts.length}}" class="card empty">还没有心得，来写下第一篇吧。</view>
+    <view wx:for="{{view.posts}}" wx:key="id" class="card"><view class="row"><view class="row"><view class="avatar">伴</view><view><view>{{item.nickname}}</view><view class="muted">{{item.at}}</view></view></view><text class="badge">{{item.statusText}}</text></view><view class="post-text">{{item.text}}</view><image wx:if="{{item.image}}" class="post-image" src="{{item.image}}" mode="aspectFill"/><view wx:if="{{item.status === 'approved'}}" class="row gap"><button class="secondary small-button" data-id="{{item.id}}" bindtap="like">{{item.liked ? '已鼓励' : '给个鼓励'}} · {{item.likeCount}}</button><text class="tag" data-id="{{item.id}}" bindtap="report">举报</text></view><view wx:else class="note">{{item.status === 'pending' ? '仅自己可见，等待管理员审核。' : '内容暂不公开，如有疑问请联系管理员。'}}</view></view>
+  </block>
+  <view class="footer-note">分享自己的感受，尊重每个人的节奏。</view>
+</view>

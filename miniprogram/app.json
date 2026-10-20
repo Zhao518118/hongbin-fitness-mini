@@ -1,0 +1,15 @@
+{
+  "pages": ["pages/today/index", "pages/community/index", "pages/profile/index", "pages/enroll/index", "pages/agreement/index", "pages/admin/index"],
+  "window": { "navigationBarTitleText": "晨光 · 90天同行", "navigationBarBackgroundColor": "#f6f7f2", "navigationBarTextStyle": "black", "backgroundColor": "#f6f7f2" },
+  "tabBar": {
+    "color": "#77817a", "selectedColor": "#176b50", "backgroundColor": "#ffffff", "borderStyle": "white",
+    "list": [
+      { "pagePath": "pages/today/index", "text": "今日" },
+      { "pagePath": "pages/community/index", "text": "营友" },
+      { "pagePath": "pages/profile/index", "text": "我的" }
+    ]
+  },
+  "sitemapLocation": "sitemap.json",
+  "style": "v2",
+  "lazyCodeLoading": "requiredComponents"
+}

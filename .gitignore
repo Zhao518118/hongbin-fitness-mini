@@ -1,0 +1,9 @@
+node_modules/
+project.private.config.json
+.env
+.env.*
+!.env.example
+cloudfunctions/api/shared/
+cloudfunctions/api/initial-state.example.json
+coverage/
+*.log
